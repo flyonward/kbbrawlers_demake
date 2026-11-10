@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keybound Brawlers</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#171428;--panel:#221d3a;--line:#3a3361;--ink:#ece8ff;--dim:#9b94c4;--mako:#4fd1c5;--amber:#ffb347;--red:#ff6b7f;--grn:#6ee787;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Chakra Petch',system-ui,sans-serif;min-height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:4px 0 2px;letter-spacing:.02em}
+p.sub{color:var(--dim);margin:0 0 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input,button{font:inherit;color:var(--ink)}
+input.txt,select.txt{background:#120f22;border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-width:0}
+button{background:var(--mako);color:#06251f;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.hidden{display:none!important}
+select.txt option{background:#120f22;color:#ece8ff}
+.players{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.pl{border-left:4px solid var(--c);background:#120f22;padding:6px 10px;border-radius:6px;min-width:120px}
+.pl b{display:block}.pl span{color:var(--amber);font-family:'IBM Plex Mono',monospace}
+#hud{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-weight:700;align-items:center}
+#hp{display:flex;gap:4px;align-items:center}
+#hp i{width:16px;height:16px;border-radius:3px;background:var(--mako)}
+#hp i.off{background:#2c2648}
+#field{position:relative;height:520px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#1d1840,#120f22)}
+#line{position:absolute;left:0;right:0;top:86%;border-top:2px dashed var(--red)}
+#line::after{content:'BARRIER';position:absolute;right:8px;top:4px;color:var(--red);font-size:11px;letter-spacing:.2em}
+.en{position:absolute;transform:translate(-50%,-50%);width:calc(25% - 14px);text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;line-height:1.3;background:#2c2648;border:1px solid var(--line);border-radius:8px;padding:6px 8px 8px}
+.en.boss{width:58%;border-color:var(--amber);font-size:17px}
+.en.lock{border-color:var(--mako);box-shadow:0 0 0 1px var(--mako)}
+.en .ok{color:var(--mako)}
+.en.charge{border-color:var(--red)}
+.en.charge .tx{color:#ff4d5e;font-weight:700}
+.en.charge .ok{color:#fff}
+.en.charge .tx.mk{color:#ff5ed8}
+.en .ic{display:block;font-size:19px;line-height:1;margin-bottom:3px}
+.en .mk{color:#ff5ed8;font-weight:700;letter-spacing:.08em}
+.pop{position:absolute;transform:translate(-50%,-50%);font-weight:700;font-size:20px;letter-spacing:.04em;pointer-events:none;animation:pu 1.7s ease-out forwards;text-shadow:0 0 6px #000,0 0 2px #000;z-index:5;white-space:nowrap}
+.pop.int{color:#ff6b7f;font-size:26px}.pop.heal{color:#6ee787}.pop.frost{color:#7fd8ff}.pop.aegis{color:#ffb347}.pop.fog{color:#ff5ed8}.pop.ward{color:#6ee787}
+@keyframes pu{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-170%)}}
+.bar{height:6px;background:#120f22;border-radius:3px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grn)}
+.bar.ch i{background:var(--red)}
+.bar.ch.on{animation:fl .5s steps(2) infinite}
+@keyframes fl{50%{opacity:.35}}
+.cl{font-size:11px;color:var(--red);height:0;overflow:visible}
+#shields{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.wpips{font-size:24px;letter-spacing:.12em;color:var(--grn);line-height:1}.wpips .off{color:#2c4a3a}.wtxt{color:var(--grn);font-weight:700;font-size:14px}
+.sh{font-family:'IBM Plex Mono',monospace;font-weight:600;border:1px solid var(--grn);color:var(--grn);background:#10261b;border-radius:8px;padding:7px 11px}
+.sh.lock{background:#1c4a30}.sh .ok{color:#fff}
+#typebox{display:flex;gap:8px;margin-top:10px}
+#typebox input{flex:1;font-family:'IBM Plex Mono',monospace;font-size:18px;padding:12px}
+#feed{height:76px;overflow:hidden;margin-top:10px;color:var(--dim);font-size:14px;font-family:'IBM Plex Mono',monospace}
+#feed div:first-child{color:var(--ink)}
+.big{font-size:22px;font-weight:700}
+.rules{color:var(--dim);font-size:14px;line-height:1.5;margin:10px 0 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Keybound Brawlers</h1>
+<p class="sub">Up to four players hold the line together. Type each enemy’s text and press Enter.</p>
+
+<section id="lobby" class="panel">
+  <div class="row">
+    <input id="name" class="txt" maxlength="14" placeholder="Your name" aria-label="Your name">
+    <input id="code" class="txt" maxlength="12" placeholder="Room code" aria-label="Room code">
+    <select id="diff" class="txt" aria-label="Difficulty"><option value="0">Easy</option><option value="1" selected>Normal</option><option value="2">Hard</option><option value="3">Extreme</option><option value="4">Savage</option><option value="5">Ultimate</option></select>
+    <button id="join">Join room</button>
+    <button id="solo" class="alt">Play solo</button>
+  </div>
+  <div id="roomInfo" class="hidden">
+    <p>Room <b id="roomName"></b> — share this code with your party. <span id="who"></span></p>
+    <div id="lobbyPlayers" class="players"></div>
+    <button id="start">Start game</button>
+    <span id="waiting" class="hidden" style="color:var(--dim)">Waiting for the host to start…</span>
+  </div>
+  <p id="dh" class="rules"></p>
+  <p class="rules">The host’s difficulty is used. Punctuation is ignored, spaces and capitals are not (wrong capitals deal half damage). Each hit chips an enemy’s HP and gives it a new phrase. Esc clears the box. Icons: 🌫 hides all words, ⚡ charges a big attack (land 4 hits to interrupt it), 💚 heals, ❄️ freezes foes, 🛡 shields the party when defeated. The boss fires attacks you can blunt by typing the green ward phrases.</p>
+  <p id="net" class="rules"></p>
+</section>
+
+<section id="game" class="hidden">
+  <div id="hud"><div id="wave">Wave 1</div><div id="hp" aria-label="Party HP"></div><div id="combo">Combo 0</div></div>
+  <div id="field"><div id="line"></div></div>
+  <div id="shields" class="hidden"></div>
+  <div id="typebox"><input id="inp" class="txt" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type here"><button id="clear" class="alt">Clear</button></div>
+  <div id="feed" aria-live="polite"></div>
+  <div id="players" class="players"></div>
+</section>
+
+<section id="end" class="panel hidden">
+  <div class="big" id="endTitle"></div>
+  <div id="endScores" class="players"></div>
+  <button id="again">Back to lobby</button>
+</section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const COLORS=['#4fd1c5','#ffb347','#ff8fb1','#8fb4ff'];
+const DIFF=[
+ {n:'Easy',wpm:45,L:.7,K:6,hp:[3,3,3],hr:[3,4,4],nm:.8,bh:.6,ch:12,ls:.2},
+ {n:'Normal',wpm:65,L:.75,K:5,hp:[3,3,4],hr:[4,4,6],nm:.9,bh:.8,ch:11,ls:.3},
+ {n:'Hard',wpm:85,L:.8,K:4.8,hp:[3,4,4],hr:[4,6,6],nm:1,bh:1,ch:10,ls:.4},
+ {n:'Extreme',wpm:100,L:.85,K:4.6,hp:[3,4,5],hr:[4,6,7],nm:1.05,bh:1.1,ch:9,ls:.5},
+ {n:'Savage',wpm:110,L:.9,K:4.5,hp:[3,4,5],hr:[4,6,7],nm:1.1,bh:1.2,ch:8,ls:.55},
+ {n:'Ultimate',wpm:122,L:.95,K:4.4,hp:[4,5,5],hr:[6,7,7],nm:1.2,bh:1.3,ch:7,ls:.65}];
+const ICON={g:'',fog:'🌫',charge:'⚡',heal:'💚',frost:'❄️',aegis:'🛡',boss:'👑'};
+const TYPES=[['g','g','g','heal','charge'],['g','g','fog','charge','frost','heal','aegis'],['g','fog','charge','frost','heal','aegis']];
+const PU=/[^\p{L}\p{N} ]/gu;
+const sn=s=>s.replace(PU,'').trim();
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const STOP=new Set('the and for with from into your you are was his her its not but out all over then them'.split(' '));
+const ALL="Eorzea|Limsa|Gridania|Ul'dah|Ishgard|Thanalan|Coerthas|Vylbrand|Aldenard|Doma|Kugane|Yanxia|Thavnair|Garlemald|Sharlayan|Labyrinthos|Tuliyollal|Urqopacha|Shaaloani|Elpis|Amaurot|Crystarium|Eulmore|Idyllshire|Kholusia|Lakeland|Rak'tika|Dalamud|Dravania|Abalathia|Hingashi|Xelphatol|Sastasha|Halatali|Neverreap|Aetheryte|Moogle|Mammet|Coeurl|Aldgoat|Apkallu|Morbol|Goobbue|Ahriman|Cockatrice|Basilisk|Qiqirn|Namazu|Lalafell|Miqo'te|Hyur|Roegadyn|Elezen|Hrothgar|Sylph|Kobold|Ixal|Amalj'aa|Sahagin|Gnath|Ifrit|Titan|Garuda|Leviathan|Ramuh|Shiva|Odin|Bismarck|Ravana|Thordan|Nidhogg|Hraesvelgr|Zurvan|Sephirot|Sophia|Omega|Diabolos|Hades|Zodiark|Hydaelyn|Innocence|Barbariccia|Rubicante|Cagnazzo|Scarmiglione|Golbez|Shinryu|Tsukuyomi|Susano|Suzaku|Seiryu|Byakko|Genbu|Rofocale|Valigarmanda|Bahamut|Alexander|Gilgamesh|Ixion|Menphina|Nophica|Halone|Rhalgr|Byregot|Llymlaen|Nymeia|Oschon|Thaliak|Azeyma|Althyk|Nald'thal|Alphinaud|Alisaie|Thancred|Urianger|Y'shtola|Estinien|Haurchefant|Tataru|Krile|Minfilia|Aymeric|Lucia|Raubahn|Merlwyb|Yugiri|Gaius|Emet-Selch|Elidibus|Lahabrea|Igeyorhm|Hythlodaeus|Venat|Fandaniel|Zenos|Meteion|Ardbert|Koana|Sphene|Erenville|G'raha|Hildibrand|Nashu|Gosetsu|Sidurgu|Ysayle|Heavensward|Stormblood|Shadowbringers|Endwalker|Dawntrail|Paladin|Warrior|Gunbreaker|Scholar|Astrologian|Dragoon|Samurai|Reaper|Machinist|Dancer|Summoner|Pictomancer|Gladiator|Marauder|Pugilist|Lancer|Archer|Conjurer|Thaumaturge|Arcanist|Alchemist|Armorer|Botanist|Culinarian|Goldsmith|Leatherworker|Weaver|Carpenter|Blacksmith|Rampart|Provoke|Interject|Reprisal|Medica|Tomestone|Mogstation|Cloud|Tifa|Aerith|Barret|Sephiroth|Vincent|Yuffie|Nanaki|Rufus|Heidegger|Palmer|Jenova|Avalanche|Shinra|Midgar|Nibelheim|Junon|Gongaga|Wutai|Mideel|Chocobo|Cactuar|Tonberry|Malboro|Behemoth|Materia|Omnislash|Braver|Meteor|Ultima|Mako|Lifestream|Cetra|Megalixir|Mythril|Adamantite|Orichalcum|Magitek|Garlean|Allagan|SOLDIER|Reunion|Cerberus|Excalibur|Masamune|Ragnarok|Gunblade|Crystal|Limsa Lominsa|Warrior of Light|Crystal Tower|Mor Dhona|Gold Saucer|Free Company|Duty Finder|Phoenix Down|Hi-Potion|Limit Break|Buster Sword|Mako Reactor|Sector Seven|Seventh Heaven|Wall Market|Cosmo Canyon|Temple of the Ancients|Northern Crater|Forgotten Capital|Midgar Zolom|Emerald Weapon|Ruby Weapon|Diamond Weapon|Knights of the Round|Final Heaven|Cait Sith|Red XIII|Black Materia|Holy Materia|Great Gospel|One-Winged Angel|Sister Ray|Honeybee Inn|Chocobo Ranch|Shinra Tower|Don Corneo|Bombing Mission|Aerith's Theme|Tifa's Theme|Anxious Heart|Not interested.|Let's mosey.|HA! Nothing will stop me!|By the Twelve!|Walk tall, my friends.|This is Thancred.|Doman Mahjong|Triple Triad|Lord of Verminion|Chocobo Racing|Island Sanctuary|Crystal Exarch|Warrior of Darkness|Eternal Darkness|The Final Days|Allagan Empire|Garlean Empire|Magitek Armor|Aetheryte Plaza|Camp Dragonhead|Revenant's Toll|Fortemps Manor|Dusk Vigil|Brayflox's Longstop|Copperbell Mines|Pharos Sirius|The Praetorium|Amdapor Keep|Stone Vigil|The Howling Eye|The Navel|The Bowl of Embers|The Whorleater|The Striking Tree|Cape Westwind|The Binding Coil|Alexander Prime|Omega Prime|Eden's Verse|Pandaemonium|Weapon's Refrain|The Unending Coil|Dragonsong's Reprise|Futures Rewritten|Don't stand in the fire!|Heal the tank, please.|Wipe incoming!|Duty Commenced|Duty Complete|Quest Complete|Skip the cutscene|Moogle Tomestone|Allagan Tomestone|Eorzean Time|Mini Cactpot|Jumbo Cactpot|Fashion Report|Primal Judgment|Torn from the Heavens|Close in the Distance|The Seventh Umbral Era|Order of the Twin Adder|Sultana Nanamo|Eorzean Alliance|Immortal Flames|Great Gubal Library|Middle La Noscea|Central Shroud|Western Thanalan|The Churning Mists|The Dravanian Forelands|The Ruby Sea|Azim Steppe|Il Mheg|Amh Araeng|Ultima Thule|Mare Lamentorum|Kozama'uka|Yak T'el|Heritage Found|Living Memory|Solution Nine|Radz-at-Han|Ala Mhigo|Gyr Abania|Revenant's Toll|Ultima Weapon|Dark Knight|White Mage|Black Mage|Red Mage|Blue Mage|Gold Chocobo|Black Chocobo|Cid Garlond|Biggs and Wedge|Fat Chocobo|Sector Six slums|Sinking Fortress|I will never be a memory.|Seven seconds till the end.|A smile better suits a hero.|The planet is dying. Slowly but surely, it's dying.|Remember us. Remember that we once lived.|We may be retreating, but we're still victorious.|Have you heard of the critically acclaimed MMORPG Final Fantasy XIV?|Yours is a long road, my friend.|Shinra Electric Power Company|Final Fantasy XIV: A Realm Reborn|Final Fantasy VII Remake|Crisis Core: Final Fantasy VII|Dirge of Cerberus|Those Chosen by the Planet|Main Theme of Final Fantasy VII|Scions of the Seventh Dawn|The Unending Coil of Bahamut|The Binding Coil of Bahamut|Alexander: The Burden of the Father|The Epic of Alexander|Coerthas Central Highlands|The Dravanian Hinterlands|Dragonsong's Reprise (Ultimate)|The Weapon's Refrain (Ultimate)|The Omega Protocol|Eden's Gate: Resurrection|Pandaemonium: Asphodelos|Anabaseios: The Twelfth Circle|Abyssos: The Eighth Circle|Sigmascape V4.0 (Savage)|Deltascape V4.0 (Savage)|Temple of the Ancients, Midgar|Sector Seven Pillar collapse|Archbishop Thordan the Seventh|The Rak'tika Greatwood|Order of the Twin Adder|Ishgardian Restoration|Bozjan Southern Front|Castrum Meridianum|Archbishop of Ishgard|Dalamud, the Lesser Moon|The Rejoining and the Sundering|Hydaelyn and Zodiark, Light and Dark|Final Fantasy XIV Online: Dawntrail|Meteor falls on Eorzea!".split("|");
+const SW=[],MW=[],LW=[];const seenA=new Set();
+for(const t of ALL){const n=t.replace(/[^\p{L}\p{N} ]/gu,"").trim(),key=n.toLowerCase();if(!n||seenA.has(key))continue;seenA.add(key);if(!n.includes(" ")){if(n.length>=4)SW.push(t);}else if(n.length>=24)LW.push(t);else if(n.length>=9)MW.push(t);}
+const WARD=["Aegis Ward","Sacred Soil","Divine Veil","Sheltron","Heart of Light","Temperance","Collective Unconscious","Holy Sheltron","Dark Mind","Rampart Wall","Nascent Flash","Kerachole","Bloodwhetting","Third Eye","Tengentsu","Magick Barrier","Troubadour","Shield Samba"];
+const POOL=[SW,MW,LW,WARD];
+const toks=t=>sn(t).toLowerCase().split(' ').filter(w=>w.length>2&&!STOP.has(w));
+const dmgOf=t=>Math.max(1,Math.round(sn(t).length/4)/2);
+const CPD=9;
+
+let room=null,myPeer=null,isHost=false,name='',code='',playing=false,lastEv=0;
+let S={ph:'lobby',wave:1,hp:10,sh:0,bs:0,sp:[],mask:0,nd:1,p:1,dn:'',ev:[],en:[],sc:{},feed:[],cb:{},at:0};
+let G=null;
+function send(topic,data){ if(room){room.emit(topic,data).catch(()=>{});} else if(topic==='submit'){hostSubmit('solo',data.t);} else if(topic==='start'){hostStart();} }
+
+// ---------- host simulation ----------
+function wp(i){const D=G.D,p=G.p;const f=1+.35*(p-1),hp=Math.ceil(D.hp[i]*f),tk=Math.ceil(D.hr[i]*f)*CPD/G.cps;
+  return {hp,n:Math.round([6,8,7][i]*D.nm*(1+.5*(p-1))),gap:tk/(p*D.L)*1000,v:80/(tk*D.K*1.12/Math.sqrt(p))};}
+function hostStart(){
+  const D=DIFF[parseInt($('diff').value,10)||0]||DIFF[1];
+  const peers=Object.keys(peersNow());const p=Math.min(4,Math.max(1,room?peers.length:1));
+  G={D,p,cps:D.wpm/12*0.787,need:p,wave:0,spawned:0,next:0,id:1,en:[],hp:10,sh:0,bs:0,sp:[],boss:false,fz:0,fogPh:0,fogEnd:0,fogCool:0,multiNext:0,mask:0,n:0,eid:0,ev:[],dirty:true,sc:{},combo:{},feed:[],ph:'play'};
+  peers.forEach(q=>{G.sc[q]=0;G.combo[q]=0;});
+  if(!room){G.sc.solo=0;G.combo.solo=0;}
+  startWave(0);
+  if(G.timer)clearInterval(G.timer);
+  G.timer=setInterval(hostTick,50);
+}
+function startWave(i){G.wave=i;G.spawned=0;G.next=performance.now()+2500;G.W=wp(i);}
+function newPhrase(tr){
+  const act=[...G.en.map(e=>e.t),...G.sp],ut=new Set(),uf=new Set(act.map(t=>sn(t).toLowerCase()));
+  act.forEach(t=>toks(t).forEach(w=>ut.add(w)));const P=POOL[tr];
+  for(let i=0;i<90;i++){const t=rnd(P);if(!uf.has(sn(t).toLowerCase())&&!toks(t).some(w=>ut.has(w)))return t;}
+  for(let i=0;i<40;i++){const t=rnd(P);if(!uf.has(sn(t).toLowerCase()))return t;}
+  return rnd(P)+' !';
+}
+function evt(tp,txt,x,y){G.eid++;G.ev.push([G.eid,tp,txt,x,y]);G.ev=G.ev.slice(-6);G.dirty=true;}
+const ex=e=>e.b?50:(e.ln+.5)*25;
+function spawn(lane,boss){
+  const W=G.W,now=performance.now(),D=G.D;
+  let tp='boss',k=2,hp=0,v=0;
+  if(!boss){
+    tp=G.spawned===0?'g':rnd(TYPES[G.wave]);
+    if(tp==='fog'&&(G.en.some(e=>e.tp==='fog')||now<G.fogCool))tp='g';
+    const multi=G.en.filter(e=>!e.b&&e.k>0).length;k=0;
+    if(tp!=='fog'&&G.spawned>0&&multi<2&&now>=G.multiNext&&Math.random()<0.45){k=Math.random()<D.ls?2:1;G.multiNext=now+5000;}
+    if(tp==='fog')G.fogCool=now+40000;
+    hp=W.hp;v=W.v;
+  }else{hp=Math.ceil(20*D.bh*(1+.5*(G.p-1)));v=77/(hp*CPD/(G.cps*G.p)*1.8+15);}
+  const t=newPhrase(k);
+  G.en.push({id:G.id++,tp,ln:lane,y:boss?9:6,v,hp,mhp:hp,k,t,dm:dmgOf(t),chg:0,ic:0,stun:0,cd:now+9000,ing:false,b:boss?1:0});
+}
+function partyDamage(n){if(n<=0)return;const a=Math.min(G.sh,n);G.sh-=a;G.hp-=n-a;for(const p in G.combo)G.combo[p]=0;}
+function hostTick(){
+  const now=performance.now(),dt=0.05,W=G.W,fz=now<G.fz;G.n++;
+  if(!G.boss&&G.spawned<W.n&&now>=G.next){
+    const lanes=[0,1,2,3].filter(l=>!G.en.some(e=>!e.b&&e.ln===l&&e.y<28));
+    if(lanes.length){spawn(rnd(lanes),false);G.spawned++;G.next=now+W.gap;G.dirty=true;}
+  }
+  if(G.wave===2&&G.spawned>=W.n&&!G.boss&&G.en.every(e=>e.y>36)){spawn(1.5,true);G.boss=true;G.sp=[];refillShields();G.dirty=true;}
+  for(const e of G.en){
+    if(!fz)e.y+=e.v*dt;
+    if(e.tp==='charge'&&now>=e.stun){e.chg+=dt/G.D.ch;if(e.chg>=1){partyDamage(3);feed('⚡ Charge hit! -3 HP');evt('int','-3 HP',ex(e),e.y);e.chg=0;e.ic=0;e.stun=now+6000;}}
+    if(e.b){
+      if(!e.ing&&now>=e.cd){e.ing=true;e.chg=0;}
+      if(e.ing){e.chg+=dt/6;if(e.chg>=1){const d=Math.max(0,4-G.bs);feed('Boss attack! '+(d?'-'+d+' HP':'blocked'));evt(d?'int':'ward',d?'-'+d+' HP':'BLOCKED',50,e.y);G.bs=0;partyDamage(d);e.chg=0;e.ing=false;e.cd=now+8000;}}
+    }
+  }
+  for(const e of G.en.filter(e=>e.y>=86)){partyDamage(e.b?4:1);feed((e.b?'The boss':'A foe')+' broke through!');if(e.tp==='fog')G.fogCool=Math.max(G.fogCool,now+20000);G.dirty=true;}
+  G.en=G.en.filter(e=>e.y<86);
+  if(G.en.some(e=>e.tp==='fog')){
+    if(!G.fogPh){G.fogPh=1;G.fogEnd=now+5000;}
+    if(now>=G.fogEnd){if(G.fogPh===1){G.fogPh=2;G.fogEnd=now+2500;}else{G.fogPh=1;G.fogEnd=now+5000;}}
+  }else G.fogPh=0;
+  const m=G.fogPh===2?1:0;if(m!==G.mask){G.mask=m;G.dirty=true;}
+  const done=G.spawned>=W.n&&(G.wave<2||G.boss)&&G.en.length===0;
+  if(G.hp<=0){G.hp=0;finish('lose');return;}
+  if(done){if(G.wave<2){feed('Wave '+(G.wave+1)+' cleared!');startWave(G.wave+1);G.dirty=true;}else{finish('win');return;}}
+  if(G.dirty||G.n%4===0){G.dirty=false;broadcast();}
+}
+function refillShields(){while(G.sp.length<2)G.sp.push(newPhrase(3));}
+function feed(m){G.feed.unshift(m);G.feed=G.feed.slice(0,4);}
+function finish(r){G.ph=r;clearInterval(G.timer);G.timer=null;broadcast();}
+function pack(){const fz=performance.now()<G.fz;return {ph:G.ph,wave:G.wave+1,hp:G.hp,sh:G.sh,bs:G.bs,sp:G.sp,mask:G.mask,nd:G.need,p:G.p,dn:G.D.n,ev:G.ev,en:G.en.map(e=>[e.id,e.tp,e.t,e.ln,+e.y.toFixed(1),+e.hp.toFixed(1),e.mhp,+e.chg.toFixed(2),e.ic,fz?0:e.v,e.stun>performance.now()?1:0]),sc:G.sc,cb:G.combo,feed:G.feed};}
+function broadcast(){const p=pack();applyState(p);if(room)room.emit('state',p).catch(()=>{});}
+function hostSubmit(peer,text){
+  if(!G||G.ph!=='play')return;
+  const s=sn(String(text||'').slice(0,100));if(!s)return;
+  const match=t=>{const x=sn(t);return x===s?1:(x.toLowerCase()===s.toLowerCase()?2:0);};
+  G.dirty=true;const now=performance.now();
+  const si=G.sp.findIndex(t=>match(t));
+  if(si>=0){G.sp.splice(si,1);G.bs=Math.min(4,G.bs+1);G.sc[peer]=(G.sc[peer]||0)+30;G.combo[peer]=(G.combo[peer]||0)+1;feed('Ward raised ('+G.bs+')');evt('ward','🛡 WARD '+G.bs,50,20);refillShields();return;}
+  let e=null,k=0;for(const x of G.en){k=match(x.t);if(k){e=x;break;}}
+  if(!e){G.combo[peer]=0;feed('Miss: '+s);return;}
+  G.combo[peer]=(G.combo[peer]||0)+1;
+  const dmg=e.dm*(k===2?0.5:1),mult=1+Math.min(G.combo[peer],10)*0.1;
+  G.sc[peer]=(G.sc[peer]||0)+Math.round(s.length*10*mult*(k===2?0.5:1));
+  e.hp-=dmg;
+  if(e.tp==='charge'&&e.chg>0&&now>=e.stun){e.ic++;if(e.ic>=G.need||e.hp<=0.01){e.chg=0;e.ic=0;e.stun=now+10000;feed('⚡ Charge interrupted!');evt('int','INTERRUPTED!',ex(e),e.y);}}
+  if(e.hp>0.01){e.t=newPhrase(e.k);e.dm=dmgOf(e.t);return;}
+  G.en=G.en.filter(x=>x!==e);G.sc[peer]+=e.b?500:(e.tp==='g'?100:200);
+  if(e.tp==='heal'){G.hp=Math.min(10,G.hp+2);feed('💚 Party healed +2');evt('heal','💚 +2 HP',ex(e),e.y);}
+  else if(e.tp==='aegis'){G.sh=Math.min(4,G.sh+2);feed('🛡 Party shield +2');evt('aegis','🛡 +2 SHIELD',ex(e),e.y);}
+  else if(e.tp==='frost'){G.fz=now+5000;feed('❄️ Enemies frozen!');evt('frost','❄️ FROZEN 5s',50,45);}
+  else if(e.tp==='fog'){G.fogCool=Math.max(G.fogCool,now+20000);feed('🌫 Fog lifted');evt('fog','FOG LIFTED',ex(e),e.y);}
+  else if(e.b)G.sp=[];
+}
+
+// ---------- client render ----------
+function peersNow(){const o={};if(!room)return o;for(const p of room.peers()){if(p.kind==='viewer')o[p.peer]=p.presence||{};}return o;}
+function applyState(p){
+  const was=playing;S=p;S.at=performance.now();
+  if(p.ph==='play'&&!playing){playing=true;lastEv=0;show('game');$('inp').focus();}
+  if(playing)for(const [id,tp,txt,x,y] of (p.ev||[])){if(id>lastEv){lastEv=id;const d=document.createElement('div');d.className='pop '+tp;d.textContent=txt;d.style.left=x+'%';d.style.top=Math.min(80,y)+'%';$('field').append(d);setTimeout(()=>d.remove(),1800);}}
+  if((p.ph==='win'||p.ph==='lose')&&playing){playing=false;showEnd(p);}
+  drawHud();
+}
+function pname(id){if(id==='solo')return name||'You';const pr=peersNow()[id];return (pr&&pr.name)||'Player';}
+function pcolor(id){const ids=Object.keys(S.sc||{}).sort();const i=Math.max(0,ids.indexOf(id));return COLORS[i%4];}
+function scoreCards(el){
+  el.textContent='';
+  Object.keys(S.sc||{}).sort().forEach(id=>{
+    const d=document.createElement('div');d.className='pl';d.style.setProperty('--c',pcolor(id));
+    const b=document.createElement('b');b.textContent=pname(id)+((id===myPeer||id==='solo')?' (you)':'');
+    const s=document.createElement('span');s.textContent=(S.sc[id]||0).toLocaleString();
+    d.append(b,s);el.append(d);
+  });
+}
+function drawHud(){
+  $('wave').textContent='Wave '+S.wave+' of 3 · '+(S.dn||'')+' · '+S.p+(S.p>1?' players':' player');
+  const hp=$('hp');hp.textContent='';for(let i=0;i<10;i++){const e=document.createElement('i');if(i>=S.hp)e.className='off';hp.append(e);}
+  if(S.sh){const t=document.createElement('span');t.textContent=' 🛡 '+S.sh;hp.append(t);}
+  const me=myPeer||'solo';$('combo').textContent='Combo '+((S.cb&&S.cb[me])||0)+(S.bs?'  ·  Ward '+S.bs:'');
+  scoreCards($('players'));
+  const f=$('feed');f.textContent='';(S.feed||[]).forEach(m=>{const d=document.createElement('div');d.textContent=m;f.append(d);});
+}
+function pm(t,v){let i=0,j=0;while(i<t.length&&j<v.length){const c=t[i];if(/[^\p{L}\p{N} ]/u.test(c)){i++;continue;}if(c.toLowerCase()!==v[j].toLowerCase())break;i++;j++;}return j===v.length?i:-1;}
+function paint(el,t,n){el.textContent='';const a=document.createElement('span');a.className='ok';a.textContent=t.slice(0,n);el.append(a,document.createTextNode(t.slice(n)));}
+const els=new Map();
+function frame(){
+  if(playing){
+    const field=$('field'),dt=(performance.now()-S.at)/1000,val=sn($('inp').value).toLowerCase(),has=val.length>0;
+    const seen=new Set();
+    for(const [id,tp,t,ln,y,hp,mhp,chg,ic,v,rec] of S.en){
+      seen.add(id);let el=els.get(id);
+      if(!el){el=document.createElement('div');el.className='en'+(tp==='boss'?' boss':'');
+        const ic_=document.createElement('span');ic_.className='ic';ic_.textContent=ICON[tp]||'';if(!ICON[tp])ic_.style.display='none';
+        const tx=document.createElement('span');tx.className='tx';
+        const hb=document.createElement('div');hb.className='bar';hb.append(document.createElement('i'));
+        const cb=document.createElement('div');cb.className='bar ch';cb.append(document.createElement('i'));
+        const ci=document.createElement('div');ci.className='cl';
+        el.append(ic_,tx,hb,cb,ci);field.append(el);els.set(id,el);el._tx=tx;el._hb=hb.firstChild;el._cb=cb;el._ci=ci;}
+      el.style.left=(tp==='boss'?50:(ln+.5)*25)+'%';el.style.top=Math.min(86,y+v*dt)+'%';
+      const masked=S.mask&&tp!=='boss';
+      const n=has&&!masked?pm(t,val):-1;const nn=n>0?n:0;
+      el.classList.toggle('lock',n>0);el.classList.toggle('charge',tp==='charge'&&chg>0);
+      const key=(masked?'m':nn)+'|'+t;
+      if(el._k!==key){el._k=key;el._tx.className=masked?'tx mk':'tx';if(masked)el._tx.textContent=t.replace(/[\p{L}\p{N}]/gu,'◆');else paint(el._tx,t,nn);}
+      el._hb.style.width=Math.max(0,hp/mhp*100)+'%';
+      el._cb.style.display=chg>0?'block':'none';el._cb.firstChild.style.width=(chg*100)+'%';el._cb.classList.toggle('on',chg>0);
+      el._ci.textContent=chg>0&&tp==='charge'?'Interrupt '+ic+'/'+S.nd:(tp==='boss'?(chg>0?'Boss charging! ':'')+'Wards '+'■'.repeat(S.bs)+'□'.repeat(4-S.bs)+' blocks '+S.bs+' of 4':(rec&&tp==='charge'?'Recovering…':''));
+      if(tp==='boss')el._ci.style.color=chg>0?'':'var(--grn)';
+    }
+    for(const [id,el] of els){if(!seen.has(id)){el.remove();els.delete(id);}}
+    const sb=$('shields'),sp=S.sp||[];sb.classList.toggle('hidden',!sp.length);
+    const sk=sp.join('|')+'|'+val+'|'+S.bs;
+    if(sb._k!==sk){sb._k=sk;sb.textContent='';const l=document.createElement('span');l.textContent='Wards';l.style.color='var(--grn)';sb.append(l);
+      const wp=document.createElement('span');wp.className='wpips';for(let i=0;i<4;i++){const q=document.createElement('span');q.textContent='■';if(i>=S.bs)q.className='off';wp.append(q);}sb.append(wp);const bt=document.createElement('span');bt.className='wtxt';bt.textContent=S.bs?'Ward '+S.bs+'/4: next boss attack −'+S.bs:'Ward 0/4';sb.append(bt);
+      sp.forEach(t=>{const d=document.createElement('div');d.className='sh';const n=has?pm(t,val):-1;d.classList.toggle('lock',n>0);paint(d,t,n>0?n:0);sb.append(d);});}
+  }
+  requestAnimationFrame(frame);
+}
+function show(w){['lobby','game','end'].forEach(k=>$(k).classList.toggle('hidden',k!==w));}
+function showEnd(p){
+  show('end');$('endTitle').textContent=p.ph==='win'?'The line held. Party victory!':'The line broke. Try again.';
+  scoreCards($('endScores'));for(const [,el] of els)el.remove();els.clear();
+}
+function hint(){const D=DIFF[parseInt($('diff').value,10)];$('dh').textContent=D.n+': tuned for a typist averaging about '+D.wpm+' WPM (roughly '+D.wpm*5+' characters per minute). Enemy count and HP grow with party size.';}
+$('diff').onchange=hint;hint();
+
+// ---------- input ----------
+function submit(){
+  const t=$('inp').value;if(!t.trim())return;$('inp').value='';
+  send('submit',{t});
+}
+$('inp').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit();}else if(e.key==='Escape'){$('inp').value='';}});
+$('clear').onclick=()=>{$('inp').value='';$('inp').focus();};
+
+// ---------- lobby / room ----------
+function drawLobby(){
+  const box=$('lobbyPlayers');box.textContent='';let i=0,hosts=0;
+  const ps=Object.entries(peersNow()).sort((a,b)=>a[0]<b[0]?-1:1);
+  for(const [id,pr] of ps){
+    if(pr.host)hosts++;
+    const d=document.createElement('div');d.className='pl';d.style.setProperty('--c',COLORS[i++%4]);
+    const b=document.createElement('b');b.textContent=(pr.name||'Player')+(id===myPeer?' (you)':'')+(pr.host?' ★':'');d.append(b);box.append(d);
+  }
+  $('start').classList.toggle('hidden',!isHost);$('waiting').classList.toggle('hidden',isHost);
+  $('who').textContent=ps.length>4?'More than four are here; only the first four score.':'';
+}
+async function enter(c){
+  name=($('name').value.trim()||'Brawler').slice(0,14);code=c;
+  $('roomInfo').classList.remove('hidden');$('roomName').textContent=c;
+  const lobby=await (window.claude?window.claude.use('room'):null);
+  if(!lobby){$('net').textContent='Live rooms are not available in this view, so you are playing solo.';return solo();}
+  try{room=await lobby.join(c);}catch(e){$('net').textContent='Could not join the room. Starting solo instead.';room=null;return solo();}
+  const me=room.peers().find(p=>p.isMe&&p.sameTab);
+  await room.presence({name});
+  room.onPeers(ch=>{const m=ch.peers.find(p=>p.isMe&&p.sameTab);if(m)myPeer=m.peer;drawLobby();});
+  room.on('submit',m=>{if(isHost)hostSubmit(m.peer,m.data&&m.data.t);});
+  room.on('start',m=>{if(isHost&&m.isMe&&!G)hostStart();});
+  room.on('state',m=>{if(!m.isMe)applyState(m.data);});
+  setTimeout(async()=>{
+    if(!Object.values(peersNow()).some(p=>p.host)){isHost=true;await room.presence({host:true});}
+    drawLobby();
+  },1500);
+}
+function solo(){isHost=true;myPeer=null;room=null;hostStart();}
+$('join').onclick=()=>{const c=($('code').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'')||Math.random().toString(36).slice(2,6));$('code').value=c;enter('kb-'+c);};
+$('solo').onclick=()=>{name=($('name').value.trim()||'Brawler');solo();};
+$('start').onclick=()=>{if(isHost)send('start',{});};
+$('again').onclick=()=>{G=null;playing=false;S={ph:'lobby',wave:1,hp:10,sh:0,bs:0,sp:[],mask:0,nd:1,p:1,dn:'',ev:[],en:[],sc:{},feed:[],cb:{}};show('lobby');if(room)drawLobby();};
+if(location.hash.length>1)$('code').value=location.hash.slice(1);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
